@@ -12,6 +12,10 @@ use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
+use Livewire\Livewire;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+
+
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -100,8 +104,16 @@ class TenancyServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->bootEvents();
-        $this->mapRoutes();
-
+        // $this->mapRoutes();
+        Livewire::setUpdateRoute(function ($handle) {
+            return Route::post('/livewire/update', $handle)
+                ->middleware(
+                    'web',
+                    'universal',
+                    InitializeTenancyByDomain::class, // or whatever tenancy middleware you use
+                );
+        });
+        FilePreviewController::$middleware = ['web', 'universal', InitializeTenancyByDomain::class];
         $this->makeTenancyMiddlewareHighestPriority();
     }
 
